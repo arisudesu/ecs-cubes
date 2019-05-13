@@ -21,6 +21,8 @@ public class TerrainRenderSystem extends EntitySystem {
     FloatBuffer buf;
     int pointer;
 
+    int listId;
+
     public TerrainRenderSystem(Terrain terrain,
                                ViewMatrixResource viewMatrixResource) {
         this.terrain = terrain;
@@ -36,8 +38,8 @@ public class TerrainRenderSystem extends EntitySystem {
             pointer = 0;
 
             for (int z = 0; z < 64; ++z) {
-                for (int y = 0; y < 256; ++y) {
-                    for (int x = 0; x < 256; ++x) {
+                for (int y = -128; y < 128; ++y) {
+                    for (int x = -128; x < 128; ++x) {
                         byte hasBlock = terrain.getBlock(x, y, z);
 
                         if (hasBlock != 0) {
@@ -145,7 +147,27 @@ public class TerrainRenderSystem extends EntitySystem {
 
             buf.flip();
             reset = false;
+
+            listId = glGenLists(1);
+            glNewList(1, GL_COMPILE);
+
+            glEnableClientState(GL_VERTEX_ARRAY);
+            glVertexPointer(3, GL_FLOAT, 0, buf);
+
+            glColor3f(0.0f, 0.0f, 0.5f);
+            glDrawArrays(GL_QUADS, 0, pointer * 24);
+
+            System.out.println(pointer * 24);
+
+//            glColor3f(0.0f, 0.0f, 1.0f);
+//            glDrawArrays(GL_LINES, 0, pointer * 24 * 3);
+
+            glDisableClientState(GL_VERTEX_ARRAY);
+
+            glEndList();
         }
+
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glMatrixMode(GL_MODELVIEW);
 
@@ -157,17 +179,18 @@ public class TerrainRenderSystem extends EntitySystem {
 
         glLoadMatrixf(viewMatrixResource.getViewMatrix().mul(modelMatrix, modelViewMatrix).get(fb));
 
+        glCallList(listId);
 
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glVertexPointer(3, GL_FLOAT, 0, buf);
-
-        glColor3f(0.0f, 0.0f, 0.5f);
-        glDrawArrays(GL_QUADS, 0, pointer * 24);
-
-        glColor3f(0.0f, 0.0f, 1.0f);
-        glDrawArrays(GL_LINES, 0, pointer * 24 * 3);
-
-        glDisableClientState(GL_VERTEX_ARRAY);
+//        glEnableClientState(GL_VERTEX_ARRAY);
+//        glVertexPointer(3, GL_FLOAT, 0, buf);
+//
+//        glColor3f(0.0f, 0.0f, 0.5f);
+//        glDrawArrays(GL_QUADS, 0, pointer * 24);
+//
+//        glColor3f(0.0f, 0.0f, 1.0f);
+//        glDrawArrays(GL_LINES, 0, pointer * 24 * 3);
+//
+//        glDisableClientState(GL_VERTEX_ARRAY);
 
         glFlush();
     }

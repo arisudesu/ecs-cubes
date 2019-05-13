@@ -29,8 +29,6 @@ public class GravitySystem extends EntitySystem {
             Position position = pm.get(entity);
             position.z -= 0.98f * deltaTime;
 
-            System.out.println(position);
-
             int
                     checkX = (int) position.x,
                     checkY = (int) position.y,

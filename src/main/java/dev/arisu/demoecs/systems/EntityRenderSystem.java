@@ -51,8 +51,6 @@ public class EntityRenderSystem extends EntitySystem {
 
         glMatrixMode(GL_MODELVIEW);
 
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
         for (Entity entity : entities) {
             Position position = pm.get(entity);
             Rotation rotation = rm.get(entity);

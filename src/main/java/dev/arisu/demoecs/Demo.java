@@ -162,8 +162,8 @@ public class Demo {
         engine.addSystem(new GravitySystem(terrain));
         engine.addSystem(new MoveSystem(inputState, mouseMoves));
         engine.addSystem(new ViewMatrixUpdateSystem(viewMatrixResource));
-        engine.addSystem(new EntityRenderSystem(viewMatrixResource));
         engine.addSystem(new TerrainRenderSystem(terrain, viewMatrixResource));
+        engine.addSystem(new EntityRenderSystem(viewMatrixResource));
 
         while (!glfwWindowShouldClose(window)) {
 

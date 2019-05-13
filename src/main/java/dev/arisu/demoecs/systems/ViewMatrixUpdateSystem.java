@@ -45,16 +45,6 @@ public class ViewMatrixUpdateSystem extends EntitySystem {
         viewMatrix.translate(-pPos.x, -pPos.y, -pPos.z);
         viewMatrix.translate(0.0f, 0.0f, -1.5f);
 
-        /*viewMatrix
-                .rotateX((float) Math.toRadians(pRot.pitch))
-                .rotateY((float) Math.toRadians(-pRot.yaw))
-                .rotateY((float) Math.toRadians(90.0f))
-                .rotateX((float) Math.toRadians(-90.0f));
-
-        viewMatrix.translate(-pPos.x, -pPos.y, -pPos.z
-                //- 1.0f
-        );*/
-
         viewMatrixResource.setViewMatrix(viewMatrix);
     }
 }

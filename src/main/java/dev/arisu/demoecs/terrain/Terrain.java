@@ -8,9 +8,9 @@ public class Terrain {
 
     public Terrain() {
         Random rand = new Random();
-        for (int x = 0; x < 256; ++x) {
-            for (int y = 0; y < 256; ++y) {
-                for (int z = 0, zLimit = rand.nextInt(3); z < zLimit; ++z) {
+        for (int x = -128; x < 128; ++x) {
+            for (int y = -128; y < 128; ++y) {
+                for (int z = 0, zLimit = rand.nextInt(2); z < zLimit; ++z) {
                     setBlock(x, y, z);
                 }
             }
@@ -19,13 +19,13 @@ public class Terrain {
     }
 
     public byte getBlock(int x, int y, int z) {
-        if (x < 0 || x >= 256 || y < 0 || y >= 256 || z < 0 || z >= 128) {
+        if (x < -128 || x >= 128 || y < -128 || y >= 128 || z < 0 || z >= 128) {
             return 0;
         }
-        return blocks[x][y][z];
+        return blocks[x + 128][y + 128][z];
     }
 
     public void setBlock(int x, int y, int z) {
-        blocks[x][y][z] = 1;
+        blocks[x + 128][y + 128][z] = 1;
     }
 }
