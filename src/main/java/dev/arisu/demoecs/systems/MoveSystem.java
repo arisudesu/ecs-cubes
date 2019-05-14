@@ -1,6 +1,10 @@
 package dev.arisu.demoecs.systems;
 
-import com.badlogic.ashley.core.*;
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Engine;
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntitySystem;
+import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import dev.arisu.demoecs.InputState;
 import dev.arisu.demoecs.components.BoundingBox;
@@ -8,7 +12,6 @@ import dev.arisu.demoecs.components.PlayerTag;
 import dev.arisu.demoecs.components.Position;
 import dev.arisu.demoecs.components.Rotation;
 import dev.arisu.demoecs.util.Pair;
-
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class MoveSystem extends EntitySystem {
@@ -47,7 +50,6 @@ public class MoveSystem extends EntitySystem {
                 BoundingBox.class
         ).get());
     }
-
 
     @Override
     public void update(float deltaTime) {

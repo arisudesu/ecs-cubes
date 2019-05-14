@@ -8,7 +8,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class Rotation implements Component {
+public final class Rotation implements Component {
     public float roll; // x
     public float pitch; // y
     public float yaw; // z

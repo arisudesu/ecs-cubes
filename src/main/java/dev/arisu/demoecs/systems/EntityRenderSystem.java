@@ -1,6 +1,10 @@
 package dev.arisu.demoecs.systems;
 
-import com.badlogic.ashley.core.*;
+import com.badlogic.ashley.core.ComponentMapper;
+import com.badlogic.ashley.core.Engine;
+import com.badlogic.ashley.core.Entity;
+import com.badlogic.ashley.core.EntitySystem;
+import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import dev.arisu.demoecs.components.PlayerTag;
 import dev.arisu.demoecs.components.Position;
@@ -8,14 +12,35 @@ import dev.arisu.demoecs.components.Rotation;
 import dev.arisu.demoecs.components.Scale;
 import dev.arisu.demoecs.resources.ViewMatrixResource;
 import dev.arisu.demoecs.util.File;
-import org.joml.Matrix4f;
-import org.lwjgl.BufferUtils;
-
 import java.io.IOException;
 import java.nio.FloatBuffer;
-
-import static org.lwjgl.opengl.GL11.*;
-import static org.lwjgl.opengl.GL20.*;
+import org.joml.Matrix4f;
+import org.lwjgl.BufferUtils;
+import static org.lwjgl.opengl.GL20.GL_ARRAY_BUFFER;
+import static org.lwjgl.opengl.GL20.GL_FLOAT;
+import static org.lwjgl.opengl.GL20.GL_FRAGMENT_SHADER;
+import static org.lwjgl.opengl.GL20.GL_QUADS;
+import static org.lwjgl.opengl.GL20.GL_STATIC_DRAW;
+import static org.lwjgl.opengl.GL20.GL_VERTEX_SHADER;
+import static org.lwjgl.opengl.GL20.glAttachShader;
+import static org.lwjgl.opengl.GL20.glBindBuffer;
+import static org.lwjgl.opengl.GL20.glBufferData;
+import static org.lwjgl.opengl.GL20.glCompileShader;
+import static org.lwjgl.opengl.GL20.glCreateProgram;
+import static org.lwjgl.opengl.GL20.glCreateShader;
+import static org.lwjgl.opengl.GL20.glDisableVertexAttribArray;
+import static org.lwjgl.opengl.GL20.glDrawArrays;
+import static org.lwjgl.opengl.GL20.glEnableVertexAttribArray;
+import static org.lwjgl.opengl.GL20.glGenBuffers;
+import static org.lwjgl.opengl.GL20.glGetAttribLocation;
+import static org.lwjgl.opengl.GL20.glGetProgramInfoLog;
+import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
+import static org.lwjgl.opengl.GL20.glGetUniformLocation;
+import static org.lwjgl.opengl.GL20.glLinkProgram;
+import static org.lwjgl.opengl.GL20.glShaderSource;
+import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
+import static org.lwjgl.opengl.GL20.glUseProgram;
+import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
 
 public class EntityRenderSystem extends EntitySystem {
     private ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class);
@@ -138,6 +163,7 @@ public class EntityRenderSystem extends EntitySystem {
 
         glBindBuffer(GL_ARRAY_BUFFER, buffer);
 
+        /// NOTE: `24` and `12` here are offsets in bytes
         glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 24, 0);
         glVertexAttribPointer(colorLoc, 3, GL_FLOAT, false, 24, 12);
 

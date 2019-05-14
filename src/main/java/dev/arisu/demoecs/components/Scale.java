@@ -8,7 +8,7 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class Scale implements Component {
+public final class Scale implements Component {
     public float x;
     public float y;
     public float z;
