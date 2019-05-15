@@ -56,9 +56,9 @@ public class TerrainRenderSystem extends EntitySystem {
     private int colorLoc;
 
     private int projULoc, viewULoc, modelULoc;
-    private int fogEnableULoc,
-            fogDensityULoc, fogStartULoc,
-            fogEndULoc, fogColorULoc;
+    private int fogEnableULoc;
+    private int fogDensityULoc;
+    private int fogColorULoc;
 
     public TerrainRenderSystem(Terrain terrain,
                                ViewMatrixResource viewMatrixResource) {
@@ -105,8 +105,6 @@ public class TerrainRenderSystem extends EntitySystem {
         this.modelULoc = glGetUniformLocation(program, "modelMatrix");
 
         this.fogEnableULoc = glGetUniformLocation(program, "fogEnable");
-        this.fogStartULoc = glGetUniformLocation(program, "fogStart");
-        this.fogEndULoc = glGetUniformLocation(program, "fogEng");
         this.fogDensityULoc = glGetUniformLocation(program, "fogDensity");
         this.fogColorULoc = glGetUniformLocation(program, "fogColor");
 
