@@ -52,6 +52,7 @@ public class TerrainRenderSystem extends EntitySystem {
 
     private int vertexLoc;
     private int colorLoc;
+    private int normalLoc;
 
     private int projULoc, viewULoc, modelULoc;
     private int fogEnableULoc;
@@ -101,6 +102,7 @@ public class TerrainRenderSystem extends EntitySystem {
 
         this.colorLoc = glGetAttribLocation(program, "in_Color");
         this.vertexLoc = glGetAttribLocation(program, "in_Position");
+        this.normalLoc = glGetAttribLocation(program, "in_Normal");
 
         this.projULoc = glGetUniformLocation(program, "projMatrix");
         this.viewULoc = glGetUniformLocation(program, "viewMatrix");
@@ -136,6 +138,7 @@ public class TerrainRenderSystem extends EntitySystem {
 
         glEnableVertexAttribArray(vertexLoc);
         glEnableVertexAttribArray(colorLoc);
+        glEnableVertexAttribArray(normalLoc);
 
         Matrix4f modelMatrix = new Matrix4f();
 
@@ -151,8 +154,9 @@ public class TerrainRenderSystem extends EntitySystem {
             /// NOTE: `24` and `12` here are offsets in bytes
             glBindBuffer(GL_ARRAY_BUFFER, chunk.getA());
 
-            glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 24, 0);
-            glVertexAttribPointer(colorLoc, 3, GL_FLOAT, false, 24, 12);
+            glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 36, 0);
+            glVertexAttribPointer(colorLoc, 3, GL_FLOAT, false, 36, 12);
+            glVertexAttribPointer(normalLoc, 3, GL_FLOAT, false, 36, 24);
 
             glDrawArrays(GL_QUADS, 0, chunk.getB() * 4);
             glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -160,6 +164,7 @@ public class TerrainRenderSystem extends EntitySystem {
 
         glDisableVertexAttribArray(vertexLoc);
         glDisableVertexAttribArray(colorLoc);
+        glDisableVertexAttribArray(normalLoc);
 
         glUseProgram(0);
     }
@@ -172,7 +177,7 @@ public class TerrainRenderSystem extends EntitySystem {
 
         final Pair<Integer, Integer> chunkCoords = renderQueue.remove(0);
         final FloatBuffer verticesBuf =
-                BufferUtils.createFloatBuffer(16 * 16 * 64 * 72);
+                BufferUtils.createFloatBuffer(16 * 16 * 64 * 216);
 
         final int minX = chunkCoords.getA() * 16;
         final int minY = chunkCoords.getB() * 16;
@@ -186,45 +191,46 @@ public class TerrainRenderSystem extends EntitySystem {
                 for (int x = minX; x <= maxX; ++x) {
 
                     float[] vertices1 = new float[]{
-                            x + 1.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.0f,
-                            x + 0.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.0f,
-                            x + 0.0f, y + 1.0f, z + 0.0f, 0.5f, 0.0f, 0.0f,
-                            x + 1.0f, y + 1.0f, z + 0.0f, 0.5f, 0.0f, 0.0f
+                            /* POSITION                */ /* COLOR       */ /* NORMAL       */
+                            x + 1.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
+                            x + 0.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
+                            x + 0.0f, y + 1.0f, z + 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
+                            x + 1.0f, y + 1.0f, z + 0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 0.0f, -1.0f,
                     };
 
                     float[] vertices2 = new float[]{
-                            x + 1.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
-                            x + 1.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
-                            x + 0.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
-                            x + 0.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
+                            x + 1.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+                            x + 1.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+                            x + 0.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
+                            x + 0.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f,
                     };
 
                     float[] vertices3 = new float[]{
-                            x + 1.0f, y + 0.0f, z + 0.0f, 0.0f, 0.5f, 0.0f,
-                            x + 1.0f, y + 1.0f, z + 0.0f, 0.0f, 0.5f, 0.0f,
-                            x + 1.0f, y + 1.0f, z + 1.0f, 0.0f, 0.5f, 0.0f,
-                            x + 1.0f, y + 0.0f, z + 1.0f, 0.0f, 0.5f, 0.0f,
+                            x + 1.0f, y + 0.0f, z + 0.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+                            x + 1.0f, y + 1.0f, z + 0.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+                            x + 1.0f, y + 1.0f, z + 1.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
+                            x + 1.0f, y + 0.0f, z + 1.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f, 0.0f,
                     };
 
                     float[] vertices4 = new float[]{
-                            x + 0.0f, y + 0.0f, z + 1.0f, 0.0f, 0.5f, 0.5f,
-                            x + 0.0f, y + 1.0f, z + 1.0f, 0.0f, 0.5f, 0.5f,
-                            x + 0.0f, y + 1.0f, z + 0.0f, 0.0f, 0.5f, 0.5f,
-                            x + 0.0f, y + 0.0f, z + 0.0f, 0.0f, 0.5f, 0.5f,
+                            x + 0.0f, y + 0.0f, z + 1.0f, 0.0f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+                            x + 0.0f, y + 1.0f, z + 1.0f, 0.0f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+                            x + 0.0f, y + 1.0f, z + 0.0f, 0.0f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
+                            x + 0.0f, y + 0.0f, z + 0.0f, 0.0f, 0.5f, 0.5f, -1.0f, 0.0f, 0.0f,
                     };
 
                     float[] vertices5 = new float[]{
-                            x + 1.0f, y + 1.0f, z + 1.0f, 0.0f, 0.0f, 0.5f,
-                            x + 1.0f, y + 1.0f, z + 0.0f, 0.0f, 0.0f, 0.5f,
-                            x + 0.0f, y + 1.0f, z + 0.0f, 0.0f, 0.0f, 0.5f,
-                            x + 0.0f, y + 1.0f, z + 1.0f, 0.0f, 0.0f, 0.5f,
+                            x + 1.0f, y + 1.0f, z + 1.0f, 0.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f,
+                            x + 1.0f, y + 1.0f, z + 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f,
+                            x + 0.0f, y + 1.0f, z + 0.0f, 0.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f,
+                            x + 0.0f, y + 1.0f, z + 1.0f, 0.0f, 0.0f, 0.5f, 0.0f, 1.0f, 0.0f,
                     };
 
                     float[] vertices6 = new float[]{
-                            x + 1.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.5f,
-                            x + 1.0f, y + 0.0f, z + 1.0f, 0.5f, 0.0f, 0.5f,
-                            x + 0.0f, y + 0.0f, z + 1.0f, 0.5f, 0.0f, 0.5f,
-                            x + 0.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.5f,
+                            x + 1.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, -1.0f, 0.0f,
+                            x + 1.0f, y + 0.0f, z + 1.0f, 0.5f, 0.0f, 0.5f, 0.0f, -1.0f, 0.0f,
+                            x + 0.0f, y + 0.0f, z + 1.0f, 0.5f, 0.0f, 0.5f, 0.0f, -1.0f, 0.0f,
+                            x + 0.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.5f, 0.0f, -1.0f, 0.0f,
                     };
 
                     if (!terrain.hasBlock(x, y, z)) {
