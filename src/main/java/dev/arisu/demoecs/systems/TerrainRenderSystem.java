@@ -20,6 +20,8 @@ import static org.lwjgl.opengl.GL20.glAttachShader;
 import static org.lwjgl.opengl.GL20.glBindBuffer;
 import static org.lwjgl.opengl.GL20.glBufferData;
 import static org.lwjgl.opengl.GL20.glClear;
+import static org.lwjgl.opengl.GL20.glClearColor;
+import static org.lwjgl.opengl.GL20.glClearDepth;
 import static org.lwjgl.opengl.GL20.glCompileShader;
 import static org.lwjgl.opengl.GL20.glCreateProgram;
 import static org.lwjgl.opengl.GL20.glCreateShader;
@@ -33,6 +35,9 @@ import static org.lwjgl.opengl.GL20.glGetShaderInfoLog;
 import static org.lwjgl.opengl.GL20.glGetUniformLocation;
 import static org.lwjgl.opengl.GL20.glLinkProgram;
 import static org.lwjgl.opengl.GL20.glShaderSource;
+import static org.lwjgl.opengl.GL20.glUniform1f;
+import static org.lwjgl.opengl.GL20.glUniform1i;
+import static org.lwjgl.opengl.GL20.glUniform4f;
 import static org.lwjgl.opengl.GL20.glUniformMatrix4fv;
 import static org.lwjgl.opengl.GL20.glUseProgram;
 import static org.lwjgl.opengl.GL20.glVertexAttribPointer;
@@ -45,10 +50,15 @@ public class TerrainRenderSystem extends EntitySystem {
     private int count = 0;
 
     private int program;
+    private int buffer;
+
     private int vertexLoc;
     private int colorLoc;
+
     private int projULoc, viewULoc, modelULoc;
-    private int buffer;
+    private int fogEnableULoc,
+            fogDensityULoc, fogStartULoc,
+            fogEndULoc, fogColorULoc;
 
     public TerrainRenderSystem(Terrain terrain,
                                ViewMatrixResource viewMatrixResource) {
@@ -94,6 +104,12 @@ public class TerrainRenderSystem extends EntitySystem {
         this.viewULoc = glGetUniformLocation(program, "viewMatrix");
         this.modelULoc = glGetUniformLocation(program, "modelMatrix");
 
+        this.fogEnableULoc = glGetUniformLocation(program, "fogEnable");
+        this.fogStartULoc = glGetUniformLocation(program, "fogStart");
+        this.fogEndULoc = glGetUniformLocation(program, "fogEng");
+        this.fogDensityULoc = glGetUniformLocation(program, "fogDensity");
+        this.fogColorULoc = glGetUniformLocation(program, "fogColor");
+
         this.buffer = glGenBuffers();
     }
 
@@ -106,6 +122,8 @@ public class TerrainRenderSystem extends EntitySystem {
             updateBuffer();
         }
 
+        glClearColor(0.5f, 0.8f, 1.0f, 0.0f);
+        glClearDepth(1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         FloatBuffer fb = BufferUtils.createFloatBuffer(16);
@@ -131,6 +149,10 @@ public class TerrainRenderSystem extends EntitySystem {
         glUniformMatrix4fv(projULoc, false, projMatrix.get(fb));
         glUniformMatrix4fv(viewULoc, false, viewMatrixResource.getViewMatrix().get(fb));
         glUniformMatrix4fv(modelULoc, false, modelMatrix.get(fb));
+
+        glUniform1i(fogEnableULoc, 1);
+        glUniform1f(fogDensityULoc, 0.01f);
+        glUniform4f(fogColorULoc, 254f / 255f, 251f / 255f, 250f / 255f, 1.0f);
 
         glDrawArrays(GL_QUADS, 0, 24 * count);
 
