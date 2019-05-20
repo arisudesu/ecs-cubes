@@ -4,8 +4,10 @@ import com.badlogic.ashley.core.EntitySystem;
 import dev.arisu.demoecs.resources.ViewMatrixResource;
 import dev.arisu.demoecs.terrain.Terrain;
 import dev.arisu.demoecs.util.File;
+import dev.arisu.demoecs.util.Pair;
 import java.io.IOException;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import org.joml.Matrix4f;
 import org.lwjgl.BufferUtils;
 import static org.lwjgl.opengl.GL20.GL_ARRAY_BUFFER;
@@ -46,11 +48,7 @@ public class TerrainRenderSystem extends EntitySystem {
     private final Terrain terrain;
     private final ViewMatrixResource viewMatrixResource;
 
-    private boolean reset = true;
-    private int count = 0;
-
     private int program;
-    private int buffer;
 
     private int vertexLoc;
     private int colorLoc;
@@ -59,6 +57,10 @@ public class TerrainRenderSystem extends EntitySystem {
     private int fogEnableULoc;
     private int fogDensityULoc;
     private int fogColorULoc;
+
+    private final ArrayList<Pair<Integer, Integer>> renderQueue = new ArrayList<>();
+
+    private final ArrayList<Pair<Integer, Integer>> chunks = new ArrayList<>();
 
     public TerrainRenderSystem(Terrain terrain,
                                ViewMatrixResource viewMatrixResource) {
@@ -108,17 +110,16 @@ public class TerrainRenderSystem extends EntitySystem {
         this.fogDensityULoc = glGetUniformLocation(program, "fogDensity");
         this.fogColorULoc = glGetUniformLocation(program, "fogColor");
 
-        this.buffer = glGenBuffers();
+        for (int x = -5; x < 5; ++x) {
+            for (int y = -5; y < 5; ++y) {
+                renderQueue.add(new Pair<>(x, y));
+            }
+        }
     }
 
     @Override
     public void update(float deltaTime) {
-
-        if (reset) {
-            reset = false;
-
-            updateBuffer();
-        }
+        executeRenderQueue();
 
         glClearColor(0.5f, 0.8f, 1.0f, 0.0f);
         glClearDepth(1.0);
@@ -136,12 +137,6 @@ public class TerrainRenderSystem extends EntitySystem {
         glEnableVertexAttribArray(vertexLoc);
         glEnableVertexAttribArray(colorLoc);
 
-        glBindBuffer(GL_ARRAY_BUFFER, buffer);
-
-        /// NOTE: `24` and `12` here are offsets in bytes
-        glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 24, 0);
-        glVertexAttribPointer(colorLoc, 3, GL_FLOAT, false, 24, 12);
-
         Matrix4f modelMatrix = new Matrix4f();
 
         glUniformMatrix4fv(projULoc, false, projMatrix.get(fb));
@@ -152,9 +147,16 @@ public class TerrainRenderSystem extends EntitySystem {
         glUniform1f(fogDensityULoc, 0.01f);
         glUniform4f(fogColorULoc, 254f / 255f, 251f / 255f, 250f / 255f, 1.0f);
 
-        glDrawArrays(GL_QUADS, 0, 24 * count);
+        for (Pair<Integer, Integer> chunk : chunks) {
+            /// NOTE: `24` and `12` here are offsets in bytes
+            glBindBuffer(GL_ARRAY_BUFFER, chunk.getA());
 
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+            glVertexAttribPointer(vertexLoc, 3, GL_FLOAT, false, 24, 0);
+            glVertexAttribPointer(colorLoc, 3, GL_FLOAT, false, 24, 12);
+
+            glDrawArrays(GL_QUADS, 0, chunk.getB() * 4);
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        }
 
         glDisableVertexAttribArray(vertexLoc);
         glDisableVertexAttribArray(colorLoc);
@@ -162,60 +164,114 @@ public class TerrainRenderSystem extends EntitySystem {
         glUseProgram(0);
     }
 
-    private void updateBuffer() {
-        FloatBuffer verticesBuf = BufferUtils.createFloatBuffer(256 * 256 * 64 * 72);
+    private void executeRenderQueue() {
+
+        if (renderQueue.isEmpty()) {
+            return;
+        }
+
+        final Pair<Integer, Integer> chunkCoords = renderQueue.remove(0);
+        final FloatBuffer verticesBuf =
+                BufferUtils.createFloatBuffer(16 * 16 * 64 * 72);
+
+        final int minX = chunkCoords.getA() * 16;
+        final int minY = chunkCoords.getB() * 16;
+        final int maxX = minX + 15;
+        final int maxY = minY + 15;
+
+        int faces = 0;
 
         for (int z = 0; z < 64; ++z) {
-            for (int y = -128; y < 128; ++y) {
-                for (int x = -128; x < 128; ++x) {
-                    byte hasBlock = terrain.getBlock(x, y, z);
+            for (int y = minY; y <= maxY; ++y) {
+                for (int x = minX; x <= maxX; ++x) {
 
-                    if (hasBlock == 0) {
-                        continue;
-                    }
-
-                    float[] vertices = new float[]{
+                    float[] vertices1 = new float[]{
                             x + 1.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.0f,
                             x + 0.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.0f,
                             x + 0.0f, y + 1.0f, z + 0.0f, 0.5f, 0.0f, 0.0f,
-                            x + 1.0f, y + 1.0f, z + 0.0f, 0.5f, 0.0f, 0.0f,
+                            x + 1.0f, y + 1.0f, z + 0.0f, 0.5f, 0.0f, 0.0f
+                    };
 
+                    float[] vertices2 = new float[]{
                             x + 1.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
                             x + 1.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
                             x + 0.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
                             x + 0.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
+                    };
 
+                    float[] vertices3 = new float[]{
                             x + 1.0f, y + 0.0f, z + 0.0f, 0.0f, 0.5f, 0.0f,
                             x + 1.0f, y + 1.0f, z + 0.0f, 0.0f, 0.5f, 0.0f,
                             x + 1.0f, y + 1.0f, z + 1.0f, 0.0f, 0.5f, 0.0f,
                             x + 1.0f, y + 0.0f, z + 1.0f, 0.0f, 0.5f, 0.0f,
+                    };
 
+                    float[] vertices4 = new float[]{
                             x + 0.0f, y + 0.0f, z + 1.0f, 0.0f, 0.5f, 0.5f,
                             x + 0.0f, y + 1.0f, z + 1.0f, 0.0f, 0.5f, 0.5f,
                             x + 0.0f, y + 1.0f, z + 0.0f, 0.0f, 0.5f, 0.5f,
                             x + 0.0f, y + 0.0f, z + 0.0f, 0.0f, 0.5f, 0.5f,
+                    };
 
+                    float[] vertices5 = new float[]{
                             x + 1.0f, y + 1.0f, z + 1.0f, 0.0f, 0.0f, 0.5f,
                             x + 1.0f, y + 1.0f, z + 0.0f, 0.0f, 0.0f, 0.5f,
                             x + 0.0f, y + 1.0f, z + 0.0f, 0.0f, 0.0f, 0.5f,
                             x + 0.0f, y + 1.0f, z + 1.0f, 0.0f, 0.0f, 0.5f,
+                    };
 
+                    float[] vertices6 = new float[]{
                             x + 1.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.5f,
                             x + 1.0f, y + 0.0f, z + 1.0f, 0.5f, 0.0f, 0.5f,
                             x + 0.0f, y + 0.0f, z + 1.0f, 0.5f, 0.0f, 0.5f,
                             x + 0.0f, y + 0.0f, z + 0.0f, 0.5f, 0.0f, 0.5f,
                     };
 
-                    verticesBuf.put(vertices);
-                    ++count;
+                    if (!terrain.hasBlock(x, y, z)) {
+                        continue;
+                    }
+
+                    if (!terrain.hasBlock(x, y, z - 1)) {
+                        verticesBuf.put(vertices1);
+                        faces++;
+                    }
+
+                    if (!terrain.hasBlock(x, y, z + 1)) {
+                        verticesBuf.put(vertices2);
+                        faces++;
+                    }
+
+                    if (!terrain.hasBlock(x + 1, y, z)) {
+                        verticesBuf.put(vertices3);
+                        faces++;
+                    }
+
+                    if (!terrain.hasBlock(x - 1, y, z)) {
+                        verticesBuf.put(vertices4);
+                        faces++;
+                    }
+
+                    if (!terrain.hasBlock(x, y + 1, z)) {
+                        verticesBuf.put(vertices5);
+                        faces++;
+                    }
+
+                    if (!terrain.hasBlock(x, y - 1, z)) {
+                        verticesBuf.put(vertices6);
+                        faces++;
+                    }
                 }
             }
         }
 
         verticesBuf.flip();
 
-        glBindBuffer(GL_ARRAY_BUFFER, this.buffer);
+        final int newBuffer = glGenBuffers();
+
+        glBindBuffer(GL_ARRAY_BUFFER, newBuffer);
         glBufferData(GL_ARRAY_BUFFER, verticesBuf, GL_STATIC_DRAW);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        chunks.add(new Pair<>(newBuffer, faces));
     }
 }

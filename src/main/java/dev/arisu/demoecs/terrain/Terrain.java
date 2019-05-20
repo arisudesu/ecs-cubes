@@ -10,7 +10,7 @@ public class Terrain {
         Random rand = new Random();
         for (int x = -128; x < 128; ++x) {
             for (int y = -128; y < 128; ++y) {
-                for (int z = 0, zLimit = rand.nextInt(2); z < zLimit; ++z) {
+                for (int z = 0, zLimit = 10 + rand.nextInt(3); z < zLimit; ++z) {
                     setBlock(x, y, z);
                 }
             }
@@ -23,6 +23,10 @@ public class Terrain {
             return 0;
         }
         return blocks[x + 128][y + 128][z];
+    }
+
+    public boolean hasBlock(int x, int y, int z) {
+        return getBlock(x, y, z) != 0;
     }
 
     public void setBlock(int x, int y, int z) {

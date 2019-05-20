@@ -140,7 +140,7 @@ public class Demo {
 
         for (int eIndex = 0; eIndex < 10; ++eIndex) {
             Entity entity = new Entity();
-            entity.add(new Position(5 * eIndex, 0.0f, 0.0f));
+            entity.add(new Position(5 * eIndex, 0.0f, 15.0f));
             entity.add(new Rotation());
             entity.add(new Scale(0.6f, 0.6f, 1.75f));
             entity.add(new BoundingBox(0.6f, 0.6f, 1.75f));
@@ -149,7 +149,7 @@ public class Demo {
         }
 
         Entity player = new Entity();
-        player.add(new Position(0.0f, 0.0f, 0.0f));
+        player.add(new Position(0.0f, 0.0f, 15.0f));
         player.add(new Rotation());
         player.add(new Scale());
         player.add(new PlayerTag());
