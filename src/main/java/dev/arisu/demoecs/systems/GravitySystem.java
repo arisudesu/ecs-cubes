@@ -6,7 +6,6 @@ import com.badlogic.ashley.core.Entity;
 import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
-import dev.arisu.demoecs.components.PlayerTag;
 import dev.arisu.demoecs.components.Position;
 import dev.arisu.demoecs.terrain.Terrain;
 
@@ -22,9 +21,7 @@ public class GravitySystem extends EntitySystem {
 
     @Override
     public void addedToEngine(Engine engine) {
-        entities = engine.getEntitiesFor(Family.all(
-                PlayerTag.class
-        ).get());
+        entities = engine.getEntitiesFor(Family.all(Position.class).get());
     }
 
     @Override

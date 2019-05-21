@@ -10,12 +10,23 @@ public class Terrain {
         Random rand = new Random();
         for (int x = -128; x < 128; ++x) {
             for (int y = -128; y < 128; ++y) {
-                for (int z = 0, zLimit = 10 + rand.nextInt(3); z < zLimit; ++z) {
+
+                setBlock(x, y, 0);
+
+                if (rand.nextInt(5) != 0) {
+                    continue;
+                }
+
+                for (int z = 1, zLimit = rand.nextInt(4); z < zLimit; ++z) {
                     setBlock(x, y, z);
                 }
             }
         }
-        setBlock(0, 0, 0);
+        resetBlock(0, 0, 1);
+        resetBlock(0, 0, 2);
+
+        setBlock(2, 2, 1);
+        setBlock(3, 3, 1);
     }
 
     public byte getBlock(int x, int y, int z) {
@@ -31,5 +42,9 @@ public class Terrain {
 
     public void setBlock(int x, int y, int z) {
         blocks[x + 128][y + 128][z] = 1;
+    }
+
+    public void resetBlock(int x, int y, int z) {
+        blocks[x + 128][y + 128][z] = 0;
     }
 }

@@ -9,7 +9,7 @@ import dev.arisu.demoecs.components.Rotation;
 import dev.arisu.demoecs.components.Scale;
 import dev.arisu.demoecs.resources.ViewMatrixResource;
 import dev.arisu.demoecs.systems.EntityRenderSystem;
-import dev.arisu.demoecs.systems.GravitySystem;
+import dev.arisu.demoecs.systems.InputSystem;
 import dev.arisu.demoecs.systems.MoveSystem;
 import dev.arisu.demoecs.systems.TerrainRenderSystem;
 import dev.arisu.demoecs.systems.ViewMatrixUpdateSystem;
@@ -138,25 +138,6 @@ public class Demo {
 
         engine = new Engine();
 
-        for (int eIndex = 0; eIndex < 10; ++eIndex) {
-            Entity entity = new Entity();
-            entity.add(new Position(5 * eIndex, 0.0f, 15.0f));
-            entity.add(new Rotation());
-            entity.add(new Scale(0.6f, 0.6f, 1.75f));
-            entity.add(new BoundingBox(0.6f, 0.6f, 1.75f));
-
-            engine.addEntity(entity);
-        }
-
-        Entity player = new Entity();
-        player.add(new Position(0.0f, 0.0f, 15.0f));
-        player.add(new Rotation());
-        player.add(new Scale());
-        player.add(new PlayerTag());
-        player.add(new BoundingBox(0.6f, 0.6f, 1.75f));
-
-        engine.addEntity(player);
-
         tickCounter = new TickCounter(System.nanoTime());
         inputState = new InputState();
 
@@ -190,13 +171,13 @@ public class Demo {
         });
         glViewport(0, 0, 800, 600);
 
-        ArrayBlockingQueue<MoveSystem.MouseMove> mouseMoves =
+        ArrayBlockingQueue<InputSystem.MouseMove> mouseMoves =
                 new ArrayBlockingQueue<>(9999);
 
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
         glfwSetCursorPosCallback(window, (window1, xpos, ypos) -> {
-            mouseMoves.offer(new MoveSystem.MouseMove(xpos, ypos));
+            mouseMoves.offer(new InputSystem.MouseMove(xpos, ypos));
             glfwSetCursorPos(window, 0, 0);
         });
 
@@ -204,11 +185,30 @@ public class Demo {
 
         Terrain terrain = new Terrain();
 
-        engine.addSystem(new GravitySystem(terrain));
-        engine.addSystem(new MoveSystem(inputState, mouseMoves));
+        engine.addSystem(new InputSystem(inputState, mouseMoves));
+        engine.addSystem(new MoveSystem(terrain));
         engine.addSystem(new ViewMatrixUpdateSystem(viewMatrixResource));
         engine.addSystem(new TerrainRenderSystem(terrain, viewMatrixResource));
         engine.addSystem(new EntityRenderSystem(viewMatrixResource));
+
+        for (int eIndex = 0; eIndex < 10; ++eIndex) {
+            Entity entity = new Entity();
+            entity.add(new Position(5 * eIndex, 0.0f, 30.0f));
+            entity.add(new Rotation());
+            entity.add(new Scale(0.6f, 0.6f, 1.75f));
+            entity.add(new BoundingBox(0.6f, 0.6f, 1.75f));
+
+            engine.addEntity(entity);
+        }
+
+        Entity player = new Entity();
+        player.add(new Position(0.5f, 0.5f, 1.0f));
+        player.add(new Rotation());
+        player.add(new Scale());
+        player.add(new PlayerTag());
+        player.add(new BoundingBox(0.6f, 0.6f, 1.75f));
+
+        engine.addEntity(player);
 
         while (!glfwWindowShouldClose(window)) {
 

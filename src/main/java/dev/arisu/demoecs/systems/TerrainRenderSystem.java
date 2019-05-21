@@ -193,10 +193,10 @@ public class TerrainRenderSystem extends EntitySystem {
                     };
 
                     float[] vertices2 = new float[]{
-                            x + 1.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
-                            x + 1.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
-                            x + 0.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
-                            x + 0.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.0f,
+                            x + 1.0f, y + 0.0f, z + 1.0f, 0.25f, 0.125f, 0.0f,
+                            x + 1.0f, y + 1.0f, z + 1.0f, 0.25f, 0.125f, 0.0f,
+                            x + 0.0f, y + 1.0f, z + 1.0f, 0.25f, 0.125f, 0.0f,
+                            x + 0.0f, y + 0.0f, z + 1.0f, 0.25f, 0.125f, 0.0f,
                     };
 
                     float[] vertices3 = new float[]{
@@ -207,10 +207,10 @@ public class TerrainRenderSystem extends EntitySystem {
                     };
 
                     float[] vertices4 = new float[]{
-                            x + 0.0f, y + 0.0f, z + 1.0f, 0.0f, 0.5f, 0.5f,
-                            x + 0.0f, y + 1.0f, z + 1.0f, 0.0f, 0.5f, 0.5f,
-                            x + 0.0f, y + 1.0f, z + 0.0f, 0.0f, 0.5f, 0.5f,
-                            x + 0.0f, y + 0.0f, z + 0.0f, 0.0f, 0.5f, 0.5f,
+                            x + 0.0f, y + 0.0f, z + 1.0f, 0.5f, 0.5f, 0.5f,
+                            x + 0.0f, y + 1.0f, z + 1.0f, 0.5f, 0.5f, 0.5f,
+                            x + 0.0f, y + 1.0f, z + 0.0f, 0.5f, 0.5f, 0.5f,
+                            x + 0.0f, y + 0.0f, z + 0.0f, 0.5f, 0.5f, 0.5f,
                     };
 
                     float[] vertices5 = new float[]{
