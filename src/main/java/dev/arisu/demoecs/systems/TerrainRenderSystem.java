@@ -172,7 +172,7 @@ public class TerrainRenderSystem extends EntitySystem {
 
         final Pair<Integer, Integer> chunkCoords = renderQueue.remove(0);
         final FloatBuffer verticesBuf =
-                BufferUtils.createFloatBuffer(16 * 16 * 64 * 72);
+                BufferUtils.createFloatBuffer(16 * 16 * 64 * 216);
 
         final int minX = chunkCoords.getA() * 16;
         final int minY = chunkCoords.getB() * 16;
