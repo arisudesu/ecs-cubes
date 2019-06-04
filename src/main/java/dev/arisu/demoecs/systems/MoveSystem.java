@@ -142,6 +142,7 @@ public class MoveSystem extends EntitySystem {
                                                      float ox, float oy, float oz,
                                                      float dx, float dy, float dz) {
         final float EPS = 0.0000001f;
+
         final boolean noX = Math.abs(dx) < EPS;
         final boolean noY = Math.abs(dy) < EPS;
         final boolean noZ = Math.abs(dz) < EPS;
@@ -179,43 +180,28 @@ public class MoveSystem extends EntitySystem {
         final Normal normaly = (dy >= 0.0f) ? Normal.SOUTH : Normal.NORTH;
         final Normal normalz = (dz >= 0.0f) ? Normal.DOWN : Normal.UP;
 
-        float tmin, tmax;
-
         if (noY) {
-
-            // не лежит между плоскостей Y
             if (oy >= ymax || oy <= ymin) return null;
+            if (txmin >= 1.0f || txmax <= 0.0f) return null;
 
-            // txmin > 1.0f => плоскость далеко впереди
-            // txmax < 0.0f => плоскость далеко позади
-            if (txmin > 1.0f || txmax < 0.0f) return null;
-
-            // для пересечения tmin должно лежать в промежутке [0.0f, 1.0f)
             return new Pair<>(clamp(txmin), normalx);
 
         } else if (noX) {
-
-            // не лежит между плоскостей X
             if (ox >= xmax || ox <= xmin) return null;
+            if (tymin >= 1.0f || tymax <= 0.0f) return null;
 
-            // tymin > 1.0f => плоскость далеко впереди
-            // tymax < 0.0f => плоскость далеко позади
-            if (tymin > 1.0f || tymax < 0.0f) return null;
-
-            // для пересечения tmin должно лежать в промежутке [0.0f, 1.0f)
             return new Pair<>(clamp(tymin), normaly);
 
         } else {
-
-            // условие пересечения
             if (txmin > tymax || txmax < tymin) return null;
 
-            tmin = Math.max(txmin, tymin);
-            tmax = Math.min(txmax, tymax);
+            float tmin = Math.max(txmin, tymin);
+            float tmax = Math.min(txmax, tymax);
+            Normal normal = (txmin > tymin) ? normalx : normaly;
 
-            if (tmin > 1.0f || tmax < 0.0f) return null;
+            if (tmin >= 1.0f || tmax <= 0.0f) return null;
 
-            return new Pair<>(clamp(tmin), (txmin > tymin) ? normalx : normaly);
+            return new Pair<>(clamp(tmin), normal);
         }
     }
 
