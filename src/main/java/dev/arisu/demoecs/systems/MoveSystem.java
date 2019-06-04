@@ -7,9 +7,9 @@ import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import dev.arisu.demoecs.components.BoundingBox;
-import dev.arisu.demoecs.components.Velocity;
 import dev.arisu.demoecs.components.PlayerTag;
 import dev.arisu.demoecs.components.Position;
+import dev.arisu.demoecs.components.Velocity;
 import dev.arisu.demoecs.terrain.Terrain;
 import dev.arisu.demoecs.util.Pair;
 import java.util.ArrayList;
@@ -54,9 +54,7 @@ public class MoveSystem extends EntitySystem {
             return;
         }
 
-        final AABB originPlayerAABB = new AABB(boundingBox, position);
-
-        final List<AABB> crossedCubes = sweepBroadPhase(originPlayerAABB, deltaX, deltaY, deltaZ);
+        final List<AABB> crossedCubes = sweepBroadPhase(new AABB(boundingBox, position), deltaX, deltaY, deltaZ);
 
         // for three planes
         for (int plane = 0; plane < 3; ++plane) {
@@ -64,31 +62,24 @@ public class MoveSystem extends EntitySystem {
 
             final ArrayList<Pair<Float, Normal>> sweepHits = new ArrayList<>();
 
+            float nearestTime = 1.0f;
+            Normal nearestNormal = null;
+
             for (AABB crossedCubeAABB : crossedCubes) {
                 final Pair<Float, Normal> sweep = sweepTestAABB(
                         crossedCubeAABB, playerAABB,
                         position.x, position.y, position.z,
-                        deltaX, deltaY, deltaZ, 0.000f, 0.000f, 0.000f);
+                        deltaX, deltaY, deltaZ);
 
                 if (sweep == null) {
                     continue;
                 }
-                sweepHits.add(sweep);
-            }
 
-            float nearestTime = 1.0f;
-            Normal nearestNormal = null;
+                if (sweep.getA() < nearestTime) {
+                    assert sweep.getA() == 1.0f || sweep.getB() != null;
 
-            if (!sweepHits.isEmpty()) {
-                System.out.println(deltaX + ", " + deltaY + ": " + sweepHits);
-            }
-
-            for (Pair<Float, Normal> sweepHit : sweepHits) {
-                assert sweepHit.getA() == 1.0f || sweepHit.getB() != null;
-
-                if (sweepHit.getA() < nearestTime) {
-                    nearestTime = sweepHit.getA();
-                    nearestNormal = sweepHit.getB();
+                    nearestTime = sweep.getA();
+                    nearestNormal = sweep.getB();
                 }
             }
 
@@ -134,6 +125,9 @@ public class MoveSystem extends EntitySystem {
     }
 
     /**
+     * Find collision of dynamic AABB against static AABB by solving series of velocity equation for t:
+     * <pre>t = (x - x<sub>0</sub>) / dx</pre>
+     *
      * @param fixed   {@link AABB} that isn't moving.
      * @param dynamic {@link AABB} that is moving.
      * @param ox      Origin of velocity vector.
@@ -142,90 +136,94 @@ public class MoveSystem extends EntitySystem {
      * @param dx      Velocity vector.
      * @param dy      Velocity vector.
      * @param dz      Velocity vector.
-     * @param marginX Additional margin to fixed AABB that doesn't allow objects to become too close.
-     * @param marginY Additional margin to fixed AABB that doesn't allow objects to become too close.
-     * @param marginZ Addition
-     *                al margin to fixed AABB that doesn't allow objects to become too close.
-     * @return
+     * @return {@link Pair}
      */
     private static Pair<Float, Normal> sweepTestAABB(AABB fixed, AABB dynamic,
                                                      float ox, float oy, float oz,
-                                                     float dx, float dy, float dz,
-                                                     float marginX, float marginY, float marginZ) {
+                                                     float dx, float dy, float dz) {
         final float EPS = 0.0000001f;
-//        final boolean noZ = Math.abs(dz) < EPS;
-        final boolean noY = Math.abs(dy) < EPS;
         final boolean noX = Math.abs(dx) < EPS;
-
-        float invdx = 1 / dx;
-        float invdy = 1 / dy;
+        final boolean noY = Math.abs(dy) < EPS;
+        final boolean noZ = Math.abs(dz) < EPS;
 
         if (noX && noY) {
             return null;
         }
 
-        if (noX) {
-            float tymin = (((dy < 0.0f) ? (fixed.maxY + dynamic.getHalfDepth() + marginY) : (fixed.minY - dynamic.getHalfDepth() - marginY)) - oy) * invdy;
-            float tymax = (((dy < 0.0f) ? (fixed.minY - dynamic.getHalfDepth() - marginY) : (fixed.maxY + dynamic.getHalfDepth() + marginY)) - oy) * invdy;
-            float xmax = fixed.maxX + dynamic.getHalfWidth() + marginX;
-            float xmin = fixed.minX - dynamic.getHalfWidth() - marginX;
+        // плоскости наибольшего приближения по каждой из осей в обоих направлениях
+        // всегда валидные значения float
+        final float xmin = fixed.minX - dynamic.getHalfWidth();
+        final float xmax = fixed.maxX + dynamic.getHalfWidth();
+        final float ymin = fixed.minY - dynamic.getHalfDepth();
+        final float ymax = fixed.maxY + dynamic.getHalfDepth();
+        final float zmin = fixed.minZ - dynamic.getHalfHeight();
+        final float zmax = fixed.maxZ + dynamic.getHalfHeight();
 
-            final Normal normal = (dy >= 0.0f) ? Normal.SOUTH : Normal.NORTH;
+        // решение уравнения t = (x - x0) / dx для каждой из пересекаемых прямой плоскостей
+        // могут принимать значения +Inf, -Inf, NaN в зависимости от параметров
+        final float txmin = (((dx >= 0.0f) ? xmin : xmax) - ox) / dx;
+        final float txmax = (((dx >= 0.0f) ? xmax : xmin) - ox) / dx;
+        final float tymin = (((dy >= 0.0f) ? ymin : ymax) - oy) / dy;
+        final float tymax = (((dy >= 0.0f) ? ymax : ymin) - oy) / dy;
+        final float tzmin = (((dz >= 0.0f) ? zmin : zmax) - oz) / dz;
+        final float tzmax = (((dz >= 0.0f) ? zmax : zmin) - oz) / dz;
 
-            if (ox >= xmax || ox <= xmin) {
-                return new Pair<>(1.0f, null);
-            }
-            if (tymin > 1.0f || tymax < 0.0f) {
-                return new Pair<>(1.0f, null);
-            }
-            tymin = clamp(tymin);
-            return new Pair<>(tymin, normal);
-        } else if (noY) {
+        assert noX || txmin <= txmax;
+        assert noY || tymin <= tymax;
+        assert noZ || tzmin <= tzmax;
 
-            float tmin = (((dx < 0.0f) ? (fixed.maxX + dynamic.getHalfWidth() + marginX) : (fixed.minX - dynamic.getHalfWidth() - marginX)) - ox) * invdx;
-            float tmax = (((dx < 0.0f) ? (fixed.minX - dynamic.getHalfWidth() - marginX) : (fixed.maxX + dynamic.getHalfWidth() + marginX)) - ox) * invdx;
-            float ymax = fixed.maxY + dynamic.getHalfDepth() + marginY;
-            float ymin = fixed.minY - dynamic.getHalfDepth() - marginY;
+        final Normal normalx = (dx >= 0.0f) ? Normal.WEST : Normal.EAST;
+        final Normal normaly = (dy >= 0.0f) ? Normal.SOUTH : Normal.NORTH;
+        final Normal normalz = (dz >= 0.0f) ? Normal.DOWN : Normal.UP;
 
-            final Normal normal = (dx >= 0.0f) ? Normal.WEST : Normal.EAST;
+        float tmin, tmax;
 
+        if (noY) {
+
+            // не лежит между плоскостей Y
             if (oy >= ymax || oy <= ymin) {
                 return new Pair<>(1.0f, null);
             }
-            if (tmin > 1.0f || tmax < 0.0f) {
+
+            // txmin > 1.0f => плоскость далеко впереди
+            // txmax < 0.0f => плоскость далеко позади
+            if (txmin > 1.0f || txmax < 0.0f) {
                 return new Pair<>(1.0f, null);
             }
-            tmin = clamp(tmin);
-            return new Pair<>(tmin, normal);
+
+            // для пересечения tmin должно лежать в промежутке [0.0f, 1.0f)
+            return new Pair<>(clamp(txmin), normalx);
+        } else if (noX) {
+
+            // не лежит между плоскостей X
+            if (ox >= xmax || ox <= xmin) {
+                return new Pair<>(1.0f, null);
+            }
+
+            // tymin > 1.0f => плоскость далеко впереди
+            // tymax < 0.0f => плоскость далеко позади
+
+            if (tymin > 1.0f || tymax < 0.0f) {
+                return new Pair<>(1.0f, null);
+            }
+
+            // для пересечения tmin должно лежать в промежутке [0.0f, 1.0f)
+            return new Pair<>(clamp(tymin), normaly);
         } else {
-            float txmin = ((dx >= 0.0f ? (fixed.minX - dynamic.getHalfWidth() - marginX) : (fixed.maxX + dynamic.getHalfWidth() + marginX)) - ox) * invdx;
-            float txmax = ((dx >= 0.0f ? (fixed.maxX + dynamic.getHalfWidth() + marginX) : (fixed.minX - dynamic.getHalfWidth() - marginX)) - ox) * invdx;
 
-            float tymin = ((dy >= 0.0f ? (fixed.minY - dynamic.getHalfDepth() - marginY) : (fixed.maxY + dynamic.getHalfDepth() + marginY)) - oy) * invdy;
-            float tymax = ((dy >= 0.0f ? (fixed.maxY + dynamic.getHalfDepth() + marginY) : (fixed.minY - dynamic.getHalfDepth() - marginY)) - oy) * invdy;
-
+            // условие пересечения
             if (txmin > tymax || tymin > txmax) {
                 return new Pair<>(1.0f, null);
             }
 
-            float tmin = Math.max(txmin, tymin);
-            float tmax = Math.min(txmax, tymax);
+            tmin = Math.max(txmin, tymin);
+            tmax = Math.min(txmax, tymax);
 
-            if (tmin >= 1.0f || tmax <= 0.0f) {
+            if (tmin > 1.0f || tmax < 0.0f) {
                 return new Pair<>(1.0f, null);
             }
 
-            if (tmin > 1.0f) {
-                return new Pair<>(1.0f, null);
-            } else {
-                tmin = clamp(tmin);
-
-                Normal normal = (txmin > tymin)
-                        ? ((dx > 0.0f) ? Normal.WEST : Normal.EAST)
-                        : ((dy > 0.0f) ? Normal.SOUTH : Normal.NORTH);
-
-                return new Pair<>(tmin, normal);
-            }
+            return new Pair<>(clamp(tmin), (txmin > tymin) ? normalx : normaly);
         }
     }
 

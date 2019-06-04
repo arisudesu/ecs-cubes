@@ -11,7 +11,7 @@ import lombok.ToString;
 @EqualsAndHashCode
 @Getter
 @AllArgsConstructor
-public class AABB {
+public final class AABB {
     final float minX;
     final float minY;
     final float minZ;
