@@ -161,12 +161,15 @@ public class MoveSystem extends EntitySystem {
 
         // решение уравнения t = (x - x0) / dx для каждой из пересекаемых прямой плоскостей
         // могут принимать значения +Inf, -Inf, NaN в зависимости от параметров
-        final float txmin = (((dx >= 0.0f) ? xmin : xmax) - ox) / dx;
-        final float txmax = (((dx >= 0.0f) ? xmax : xmin) - ox) / dx;
-        final float tymin = (((dy >= 0.0f) ? ymin : ymax) - oy) / dy;
-        final float tymax = (((dy >= 0.0f) ? ymax : ymin) - oy) / dy;
-        final float tzmin = (((dz >= 0.0f) ? zmin : zmax) - oz) / dz;
-        final float tzmax = (((dz >= 0.0f) ? zmax : zmin) - oz) / dz;
+        final float invdx = 1 / dx;
+        final float invdy = 1 / dy;
+        final float invdz = 1 / dz;
+        final float txmin = (((dx >= 0.0f) ? xmin : xmax) - ox) * invdx;
+        final float txmax = (((dx >= 0.0f) ? xmax : xmin) - ox) * invdx;
+        final float tymin = (((dy >= 0.0f) ? ymin : ymax) - oy) * invdy;
+        final float tymax = (((dy >= 0.0f) ? ymax : ymin) - oy) * invdy;
+        final float tzmin = (((dz >= 0.0f) ? zmin : zmax) - oz) * invdz;
+        final float tzmax = (((dz >= 0.0f) ? zmax : zmin) - oz) * invdz;
 
         assert noX || txmin <= txmax;
         assert noY || tymin <= tymax;
@@ -181,47 +184,36 @@ public class MoveSystem extends EntitySystem {
         if (noY) {
 
             // не лежит между плоскостей Y
-            if (oy >= ymax || oy <= ymin) {
-                return new Pair<>(1.0f, null);
-            }
+            if (oy >= ymax || oy <= ymin) return null;
 
             // txmin > 1.0f => плоскость далеко впереди
             // txmax < 0.0f => плоскость далеко позади
-            if (txmin > 1.0f || txmax < 0.0f) {
-                return new Pair<>(1.0f, null);
-            }
+            if (txmin > 1.0f || txmax < 0.0f) return null;
 
             // для пересечения tmin должно лежать в промежутке [0.0f, 1.0f)
             return new Pair<>(clamp(txmin), normalx);
+
         } else if (noX) {
 
             // не лежит между плоскостей X
-            if (ox >= xmax || ox <= xmin) {
-                return new Pair<>(1.0f, null);
-            }
+            if (ox >= xmax || ox <= xmin) return null;
 
             // tymin > 1.0f => плоскость далеко впереди
             // tymax < 0.0f => плоскость далеко позади
-
-            if (tymin > 1.0f || tymax < 0.0f) {
-                return new Pair<>(1.0f, null);
-            }
+            if (tymin > 1.0f || tymax < 0.0f) return null;
 
             // для пересечения tmin должно лежать в промежутке [0.0f, 1.0f)
             return new Pair<>(clamp(tymin), normaly);
+
         } else {
 
             // условие пересечения
-            if (txmin > tymax || tymin > txmax) {
-                return new Pair<>(1.0f, null);
-            }
+            if (txmin > tymax || txmax < tymin) return null;
 
             tmin = Math.max(txmin, tymin);
             tmax = Math.min(txmax, tymax);
 
-            if (tmin > 1.0f || tmax < 0.0f) {
-                return new Pair<>(1.0f, null);
-            }
+            if (tmin > 1.0f || tmax < 0.0f) return null;
 
             return new Pair<>(clamp(tmin), (txmin > tymin) ? normalx : normaly);
         }
