@@ -7,9 +7,9 @@ import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import dev.arisu.demoecs.InputState;
-import dev.arisu.demoecs.components.Movement;
 import dev.arisu.demoecs.components.PlayerTag;
 import dev.arisu.demoecs.components.Rotation;
+import dev.arisu.demoecs.components.Velocity;
 import dev.arisu.demoecs.util.Pair;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -24,7 +24,7 @@ public class InputSystem extends EntitySystem {
     private ImmutableArray<Entity> playerEntity;
 
     private ComponentMapper<Rotation> rm = ComponentMapper.getFor(Rotation.class);
-    private ComponentMapper<Movement> mm = ComponentMapper.getFor(Movement.class);
+    private ComponentMapper<Velocity> vm = ComponentMapper.getFor(Velocity.class);
 
     private final InputState inputState;
     private final ArrayBlockingQueue<MouseMove> mouseMoves;
@@ -48,10 +48,10 @@ public class InputSystem extends EntitySystem {
         final Entity player = playerEntity.first();
         final Rotation rotation = rm.get(player);
 
-        Movement movement = mm.get(player);
-        if (movement == null) {
-            movement = new Movement();
-            player.add(movement);
+        Velocity velocity = vm.get(player);
+        if (velocity == null) {
+            velocity = new Velocity();
+            player.add(velocity);
         }
 
         while (!mouseMoves.isEmpty()) {
@@ -89,10 +89,11 @@ public class InputSystem extends EntitySystem {
             deltaZ += 2.0f * deltaTime;
         }
 
-//        deltaZ += -1.0f * deltaTime;
+        // // apply gravitation accel
+        // deltaZ += -1.0f * deltaTime;
 
-        movement.x = deltaX;
-        movement.y = deltaY;
-        movement.z = deltaZ;
+        velocity.x = deltaX;
+        velocity.y = deltaY;
+        velocity.z = deltaZ;
     }
 }

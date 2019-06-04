@@ -74,7 +74,6 @@ public class Demo {
 
     // The window handle
     private long window;
-    private TickCounter tickCounter;
     private InputState inputState;
     private Engine engine;
 
@@ -138,7 +137,6 @@ public class Demo {
 
         engine = new Engine();
 
-        tickCounter = new TickCounter(System.nanoTime());
         inputState = new InputState();
 
         glfwSetCursorPos(window, 0, 0);
@@ -220,8 +218,6 @@ public class Demo {
     }
 
     private void runGameStep() {
-
-        tickCounter.update(System.nanoTime());
         engine.update(0.1f);
     }
 

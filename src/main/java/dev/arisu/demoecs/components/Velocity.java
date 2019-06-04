@@ -8,16 +8,16 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public final class Movement implements Component {
+public final class Velocity implements Component {
     public float x;
     public float y;
     public float z;
 
-    public Movement() {
+    public Velocity() {
         this(0.0f, 0.0f, 0.0f);
     }
 
-    public Movement(float x, float y, float z) {
+    public Velocity(float x, float y, float z) {
         this.x = x;
         this.y = y;
         this.z = z;

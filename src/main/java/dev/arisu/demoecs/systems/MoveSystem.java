@@ -7,7 +7,7 @@ import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import dev.arisu.demoecs.components.BoundingBox;
-import dev.arisu.demoecs.components.Movement;
+import dev.arisu.demoecs.components.Velocity;
 import dev.arisu.demoecs.components.PlayerTag;
 import dev.arisu.demoecs.components.Position;
 import dev.arisu.demoecs.terrain.Terrain;
@@ -20,7 +20,7 @@ public class MoveSystem extends EntitySystem {
 
     private ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class);
     private ComponentMapper<BoundingBox> bbm = ComponentMapper.getFor(BoundingBox.class);
-    private ComponentMapper<Movement> mm = ComponentMapper.getFor(Movement.class);
+    private ComponentMapper<Velocity> vm = ComponentMapper.getFor(Velocity.class);
 
     private final Terrain terrain;
 
@@ -33,7 +33,7 @@ public class MoveSystem extends EntitySystem {
         playerEntity = engine.getEntitiesFor(Family.all(
                 PlayerTag.class,
                 Position.class,
-                Movement.class,
+                Velocity.class,
                 BoundingBox.class
         ).get());
     }
@@ -44,11 +44,11 @@ public class MoveSystem extends EntitySystem {
 
         final Position position = pm.get(player);
         final BoundingBox boundingBox = bbm.get(player);
-        final Movement movement = mm.get(player);
+        final Velocity velocity = vm.get(player);
 
-        float deltaX = movement.x,
-                deltaY = movement.y,
-                deltaZ = movement.z;
+        float deltaX = velocity.x,
+                deltaY = velocity.y,
+                deltaZ = velocity.z;
 
         if (deltaX == 0.0f && deltaY == 0.0f && deltaZ == 0.0f) {
             return;
