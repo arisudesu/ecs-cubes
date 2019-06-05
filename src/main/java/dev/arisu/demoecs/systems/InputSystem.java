@@ -90,7 +90,7 @@ public class InputSystem extends EntitySystem {
         }
 
         // // apply gravitation accel
-        // deltaZ += -1.0f * deltaTime;
+        deltaZ += -1.0f * deltaTime;
 
         velocity.x = deltaX;
         velocity.y = deltaY;

@@ -15,6 +15,6 @@ enum Normal {
     Normal(float x, float y, float z) {
         this.x = x;
         this.y = y;
-        this.y = z;
+        this.z = z;
     }
 }

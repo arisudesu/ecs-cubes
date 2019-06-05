@@ -200,7 +200,7 @@ public class Demo {
         }
 
         Entity player = new Entity();
-        player.add(new Position(0.5f, 0.5f, 1.0f));
+        player.add(new Position(0.5f, 0.5f, 2.0f));
         player.add(new Rotation());
         player.add(new Scale());
         player.add(new PlayerTag());
