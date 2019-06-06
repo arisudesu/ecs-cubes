@@ -70,30 +70,39 @@ public class InputSystem extends EntitySystem {
         float deltaX = 0.0f, deltaY = 0.0f, deltaZ = 0.0f;
 
         if (inputState.isW()) {
-            deltaY += Math.sin(Math.toRadians(rotation.yaw)) * deltaTime;
-            deltaX += Math.cos(Math.toRadians(rotation.yaw)) * deltaTime;
+            deltaY += Math.sin(Math.toRadians(rotation.yaw));
+            deltaX += Math.cos(Math.toRadians(rotation.yaw));
         }
         if (inputState.isS()) {
-            deltaY -= Math.sin(Math.toRadians(rotation.yaw)) * deltaTime;
-            deltaX -= Math.cos(Math.toRadians(rotation.yaw)) * deltaTime;
+            deltaY -= Math.sin(Math.toRadians(rotation.yaw));
+            deltaX -= Math.cos(Math.toRadians(rotation.yaw));
         }
         if (inputState.isA()) {
-            deltaX += Math.sin(Math.toRadians(-rotation.yaw)) * deltaTime;
-            deltaY += Math.cos(Math.toRadians(rotation.yaw)) * deltaTime;
+            deltaX += Math.sin(Math.toRadians(-rotation.yaw));
+            deltaY += Math.cos(Math.toRadians(rotation.yaw));
         }
         if (inputState.isD()) {
-            deltaX += Math.sin(Math.toRadians(-rotation.yaw)) * -deltaTime;
-            deltaY += Math.cos(Math.toRadians(rotation.yaw)) * -deltaTime;
+            deltaX -= Math.sin(Math.toRadians(-rotation.yaw));
+            deltaY -= Math.cos(Math.toRadians(rotation.yaw));
         }
         if (inputState.isSpace()) {
-            deltaZ += 2.0f * deltaTime;
+            deltaZ += 2.0f;
         }
 
-        // // apply gravitation accel
-        deltaZ += -1.0f * deltaTime;
+        // apply gravitation accel
+        deltaZ += -1.0f;
 
-        velocity.x = deltaX;
-        velocity.y = deltaY;
-        velocity.z = deltaZ;
+        // normalize input vector
+        final float EPS = 0.0000001f;
+
+        if (Math.abs(deltaX) > EPS || Math.abs(deltaY) > EPS) {
+            float lenXY = (float) Math.sqrt(deltaX * deltaX + deltaY * deltaY);
+            deltaX /= lenXY;
+            deltaY /= lenXY;
+        }
+
+        velocity.x = deltaX * deltaTime;
+        velocity.y = deltaY * deltaTime;
+        velocity.z = deltaZ * deltaTime;
     }
 }

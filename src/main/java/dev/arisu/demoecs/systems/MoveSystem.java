@@ -116,6 +116,8 @@ public class MoveSystem extends EntitySystem {
                 deltaZ = 0.0f;
             } else if (nearestNormal == Normal.UP && deltaZ < 0.0f) {
                 deltaZ = 0.0f;
+            } else {
+                break;
             }
         }
     }

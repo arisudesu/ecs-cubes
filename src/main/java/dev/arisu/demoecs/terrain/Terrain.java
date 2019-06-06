@@ -26,7 +26,20 @@ public class Terrain {
         resetBlock(0, 0, 2);
 
         setBlock(2, 2, 1);
-        setBlock(3, 3, 1);
+        setBlock(2, 2, 2);
+        setBlock(2, 2, 3);
+        setBlock(2, 2, 4);
+
+        setBlock(4, 2, 1);
+        setBlock(4, 2, 2);
+        setBlock(4, 2, 3);
+        setBlock(4, 2, 4);
+
+        setBlock(3, 2, 1);
+        setBlock(3, 2, 4);
+
+        resetBlock(3, 2, 2);
+        resetBlock(3, 2, 3);
     }
 
     public byte getBlock(int x, int y, int z) {
