@@ -46,13 +46,9 @@ public class MoveSystem extends EntitySystem {
         final BoundingBox boundingBox = bbm.get(player);
         final Velocity velocity = vm.get(player);
 
-        float deltaX = velocity.x,
-                deltaY = velocity.y,
-                deltaZ = velocity.z;
-
-//        if (deltaX == 0.0f && deltaY == 0.0f && deltaZ == 0.0f) {
-//            return;
-//        }
+        float deltaX = velocity.x * deltaTime,
+                deltaY = velocity.y * deltaTime,
+                deltaZ = velocity.z * deltaTime;
 
         final List<AABB> crossedCubes = sweepBroadPhase(new AABB(boundingBox, position), deltaX, deltaY, deltaZ);
 
@@ -85,11 +81,11 @@ public class MoveSystem extends EntitySystem {
             float applyY = deltaY * nearestTime;
             float applyZ = deltaZ * nearestTime;
 
-//            if (nearestNormal != null) {
-//                applyX += nearestNormal.x * 0.0005;
-//                applyY += nearestNormal.y * 0.0005;
-//                applyZ += nearestNormal.z * 0.0005;
-//            }
+            if (nearestNormal != null) {
+                applyX += nearestNormal.x * 0.0005;
+                applyY += nearestNormal.y * 0.0005;
+                applyZ += nearestNormal.z * 0.0005;
+            }
 
             position.x += applyX;
             position.y += applyY;
@@ -99,27 +95,28 @@ public class MoveSystem extends EntitySystem {
             deltaY -= applyY;
             deltaZ -= applyZ;
 
-//            if (nearestTime < 1.0f && nearestTime > 0.0f) {
-//                System.err.println(String.format("Moved by %.6f with %.6f %.6f", nearestTime, deltaX, deltaY));
-//                System.err.flush();
-//            }
-
             if (nearestNormal == Normal.WEST && deltaX > 0.0f) {
                 deltaX = 0.0f;
+                velocity.x = 0.0f;
             } else if (nearestNormal == Normal.EAST && deltaX < 0.0f) {
                 deltaX = 0.0f;
+                velocity.x = 0.0f;
             } else if (nearestNormal == Normal.SOUTH && deltaY > 0.0f) {
                 deltaY = 0.0f;
+                velocity.y = 0.0f;
             } else if (nearestNormal == Normal.NORTH && deltaY < 0.0f) {
                 deltaY = 0.0f;
+                velocity.y = 0.0f;
             } else if (nearestNormal == Normal.DOWN && deltaZ > 0.0f) {
                 deltaZ = 0.0f;
+                velocity.z = 0.0f;
             } else if (nearestNormal == Normal.UP && deltaZ < 0.0f) {
                 deltaZ = 0.0f;
-            } else {
-                break;
+                velocity.z = 0.0f;
             }
         }
+
+        System.out.println(position);
     }
 
     /**

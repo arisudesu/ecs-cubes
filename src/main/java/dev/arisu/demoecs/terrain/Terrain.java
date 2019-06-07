@@ -13,7 +13,7 @@ public class Terrain {
 
                 setBlock(x, y, 0);
 
-                if (rand.nextInt(5) != 0) {
+                if (rand.nextInt(15) != 0) {
                     continue;
                 }
 

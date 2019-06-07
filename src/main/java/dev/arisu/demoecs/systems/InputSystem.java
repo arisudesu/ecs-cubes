@@ -67,7 +67,7 @@ public class InputSystem extends EntitySystem {
             }
         }
 
-        float deltaX = 0.0f, deltaY = 0.0f, deltaZ = 0.0f;
+        float deltaX = 0.0f, deltaY = 0.0f;
 
         if (inputState.isW()) {
             deltaY += Math.sin(Math.toRadians(rotation.yaw));
@@ -85,12 +85,6 @@ public class InputSystem extends EntitySystem {
             deltaX -= Math.sin(Math.toRadians(-rotation.yaw));
             deltaY -= Math.cos(Math.toRadians(rotation.yaw));
         }
-        if (inputState.isSpace()) {
-            deltaZ += 2.0f;
-        }
-
-        // apply gravitation accel
-        deltaZ += -1.0f;
 
         // normalize input vector
         final float EPS = 0.0000001f;
@@ -101,8 +95,14 @@ public class InputSystem extends EntitySystem {
             deltaY /= lenXY;
         }
 
-        velocity.x = deltaX * deltaTime;
-        velocity.y = deltaY * deltaTime;
-        velocity.z = deltaZ * deltaTime;
+        velocity.x = deltaX * 0.7f;
+        velocity.y = deltaY * 0.7f;
+
+        if (Math.abs(velocity.z) < EPS && inputState.isSpace()) {
+            inputState.setSpace(false);
+            velocity.z = 1.8f;
+        }
+
+        velocity.z += -1.25f * deltaTime;
     }
 }
