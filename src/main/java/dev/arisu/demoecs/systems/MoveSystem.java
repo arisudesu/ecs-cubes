@@ -7,6 +7,7 @@ import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import dev.arisu.demoecs.components.BoundingBox;
+import dev.arisu.demoecs.components.Flags;
 import dev.arisu.demoecs.components.PlayerTag;
 import dev.arisu.demoecs.components.Position;
 import dev.arisu.demoecs.components.Velocity;
@@ -21,6 +22,7 @@ public class MoveSystem extends EntitySystem {
     private ComponentMapper<Position> pm = ComponentMapper.getFor(Position.class);
     private ComponentMapper<BoundingBox> bbm = ComponentMapper.getFor(BoundingBox.class);
     private ComponentMapper<Velocity> vm = ComponentMapper.getFor(Velocity.class);
+    private ComponentMapper<Flags> fm = ComponentMapper.getFor(Flags.class);
 
     private final Terrain terrain;
 
@@ -46,9 +48,19 @@ public class MoveSystem extends EntitySystem {
         final BoundingBox boundingBox = bbm.get(player);
         final Velocity velocity = vm.get(player);
 
+        Flags flags = fm.get(player);
+        if (flags == null) {
+            flags = new Flags();
+            player.add(flags);
+        }
+
         float deltaX = velocity.x * deltaTime,
                 deltaY = velocity.y * deltaTime,
                 deltaZ = velocity.z * deltaTime;
+
+        if (Math.abs(deltaZ) >= 0.0000001f) {
+            flags.setOnGround(false);
+        }
 
         final List<AABB> crossedCubes = sweepBroadPhase(new AABB(boundingBox, position), deltaX, deltaY, deltaZ);
 
@@ -113,10 +125,11 @@ public class MoveSystem extends EntitySystem {
             } else if (nearestNormal == Normal.UP && deltaZ < 0.0f) {
                 deltaZ = 0.0f;
                 velocity.z = 0.0f;
+                flags.setOnGround(true);
             }
         }
 
-        System.out.println(position);
+//        System.out.println(position);
     }
 
     /**

@@ -7,6 +7,7 @@ import com.badlogic.ashley.core.EntitySystem;
 import com.badlogic.ashley.core.Family;
 import com.badlogic.ashley.utils.ImmutableArray;
 import dev.arisu.demoecs.InputState;
+import dev.arisu.demoecs.components.Flags;
 import dev.arisu.demoecs.components.PlayerTag;
 import dev.arisu.demoecs.components.Rotation;
 import dev.arisu.demoecs.components.Velocity;
@@ -25,6 +26,7 @@ public class InputSystem extends EntitySystem {
 
     private ComponentMapper<Rotation> rm = ComponentMapper.getFor(Rotation.class);
     private ComponentMapper<Velocity> vm = ComponentMapper.getFor(Velocity.class);
+    private ComponentMapper<Flags> fm = ComponentMapper.getFor(Flags.class);
 
     private final InputState inputState;
     private final ArrayBlockingQueue<MouseMove> mouseMoves;
@@ -47,6 +49,7 @@ public class InputSystem extends EntitySystem {
     public void update(float deltaTime) {
         final Entity player = playerEntity.first();
         final Rotation rotation = rm.get(player);
+        final Flags flags = fm.get(player);
 
         Velocity velocity = vm.get(player);
         if (velocity == null) {
@@ -95,14 +98,24 @@ public class InputSystem extends EntitySystem {
             deltaY /= lenXY;
         }
 
-        velocity.x = deltaX * 0.7f;
-        velocity.y = deltaY * 0.7f;
+        if (flags != null && flags.isOnGround()) {
+            System.out.println("on ground");
+            velocity.x *= 0.85;
+            velocity.y *= 0.85;
+            velocity.x += deltaX * deltaTime;
+            velocity.y += deltaY * deltaTime;
+        } else {
+            velocity.x *= 0.98;
+            velocity.y *= 0.98;
+            velocity.x += deltaX * 0.025f;
+            velocity.y += deltaY * 0.025f;
+        }
 
         if (Math.abs(velocity.z) < EPS && inputState.isSpace()) {
             inputState.setSpace(false);
-            velocity.z = 1.8f;
+            velocity.z = 1.2f;
         }
 
-        velocity.z += -1.25f * deltaTime;
+        velocity.z += -0.5f * deltaTime;
     }
 }
