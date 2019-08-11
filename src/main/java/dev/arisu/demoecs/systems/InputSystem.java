@@ -105,8 +105,8 @@ public class InputSystem extends EntitySystem {
             velocity.x += deltaX * deltaTime;
             velocity.y += deltaY * deltaTime;
         } else {
-            velocity.x *= 0.98;
-            velocity.y *= 0.98;
+            velocity.x *= 0.95;
+            velocity.y *= 0.95;
             velocity.x += deltaX * 0.025f;
             velocity.y += deltaY * 0.025f;
         }

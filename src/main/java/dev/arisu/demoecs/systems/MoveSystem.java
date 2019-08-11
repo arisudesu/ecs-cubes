@@ -128,8 +128,6 @@ public class MoveSystem extends EntitySystem {
                 flags.setOnGround(true);
             }
         }
-
-//        System.out.println(position);
     }
 
     /**
