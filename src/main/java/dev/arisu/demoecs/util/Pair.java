@@ -8,8 +8,8 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public class Pair<A, B> {
-    private A a;
-    private B b;
+    public A a;
+    public B b;
 
     public Pair(A a, B b) {
         this.a = a;
